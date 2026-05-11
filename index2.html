@@ -1,1 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="google-adsense-account" content="ca-pub-5586100977457598">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusFlow</title>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5586100977457598" crossorigin="anonymous"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f0f13;--bg2:#1a1a23;--bg3:#22222e;--card:#1e1e2a;
+  --border:#2e2e40;--text:#e8e8f0;--muted:#888;--accent:#7c6af7;
+  --accent2:#5e54c0;--green:#4ade80;--red:#f87171;--amber:#fbbf24;
+  --radius:12px;--radius-sm:8px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+input,select,button{font-family:inherit}
 
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.logo{font-size:18px;font-weight:600;color:var(--accent);letter-spacing:-0.5px}
+.logo span{color:var(--text)}
+nav .nav-links{display:flex;gap:8px}
+nav button{background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 16px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;transition:all .2s}
+nav button:hover{color:var(--text);border-color:var(--accent)}
+nav button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* PAGES */
+.page{display:none;padding:28px 24px;max-width:780px;margin:0 auto}
+.page.active{display:block}
+
+/* AUTH PAGE */
+.auth-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:36px;max-width:420px;margin:40px auto}
+.auth-card h2{font-size:22px;font-weight:600;margin-bottom:6px}
+.auth-card p{color:var(--muted);font-size:14px;margin-bottom:24px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:var(--radius-sm);font-size:14px;outline:none;transition:border .2s}
+.field input:focus{border-color:var(--accent)}
+.btn-primary{width:100%;background:var(--accent);color:#fff;border:none;padding:11px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;cursor:pointer;transition:background .2s;margin-top:4px}
+.btn-primary:hover{background:var(--accent2)}
+.auth-toggle{text-align:center;margin-top:16px;font-size:13px;color:var(--muted)}
+.auth-toggle a{color:var(--accent);cursor:pointer;text-decoration:none}
+.error-msg{color:var(--red);font-size:12px;margin-top:-10px;margin-bottom:10px;display:none}
+
+/* TIMER PAGE */
+.timer-grid{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+.timer-main{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;text-align:center}
+.mode-toggle{display:flex;gap:8px;justify-content:center;margin-bottom:24px}
+.mode-btn{background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:8px 20px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s}
+.mode-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.phase-label{font-size:13px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+.ring-wrap{position:relative;width:220px;height:220px;margin:0 auto 20px}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--bg3);stroke-width:10}
+.ring-prog{fill:none;stroke:var(--accent);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke .3s}
+.timer-display{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.timer-display .time{font-size:42px;font-weight:700;letter-spacing:-1px;line-height:1}
+.timer-display .session{font-size:12px;color:var(--muted);margin-top:4px}
+.timer-controls{display:flex;gap:10px;justify-content:center;margin-bottom:20px}
+.ctrl-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);width:48px;height:48px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.ctrl-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ctrl-btn.play{background:var(--accent);border-color:var(--accent);color:#fff;width:56px;height:56px;font-size:22px}
+.ctrl-btn.play:hover{background:var(--accent2)}
+.stats-row{display:flex;justify-content:center;gap:24px}
+.stat-box{text-align:center}
+.stat-box .val{font-size:18px;font-weight:600}
+.stat-box .lbl{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.panel h3{font-size:13px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.sound-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sound-btn{background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:10px 8px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;text-align:center;transition:all .2s}
+.sound-btn:hover{color:var(--text);border-color:var(--accent)}
+.sound-btn.active{background:rgba(124,106,247,0.15);color:var(--accent);border-color:var(--accent)}
+.vol-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.vol-row label{font-size:12px;color:var(--muted)}
+.vol-row input[type=range]{flex:1;accent-color:var(--accent)}
+
+/* LIMIT BAR */
+.limit-bar-wrap{margin-top:10px}
+.limit-bar-wrap label{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:5px}
+.limit-bar{background:var(--bg3);border-radius:4px;height:6px;overflow:hidden}
+.limit-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .5s}
+.limit-fill.warn{background:var(--amber)}
+.limit-fill.over{background:var(--red)}
+.premium-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(251,191,36,0.15);color:var(--amber);font-size:11px;padding:3px 8px;border-radius:10px;margin-top:6px;cursor:pointer}
+
+/* HISTORY PAGE */
+.history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.history-header h2{font-size:20px;font-weight:600}
+.stats-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px}
+.stat-card .sc-val{font-size:22px;font-weight:600}
+.stat-card .sc-lbl{font-size:12px;color:var(--muted);margin-top:2px}
+.history-list{display:flex;flex-direction:column;gap:8px}
+.history-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;gap:12px}
+.history-item .hi-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.hi-focus{background:rgba(124,106,247,0.2);color:var(--accent)}
+.hi-break{background:rgba(74,222,128,0.15);color:var(--green)}
+.history-item .hi-info{flex:1}
+.history-item .hi-title{font-size:14px;font-weight:500}
+.history-item .hi-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.history-item .hi-dur{font-size:13px;font-weight:600;color:var(--accent)}
+.empty-state{text-align:center;padding:48px 0;color:var(--muted);font-size:14px}
+.badge-pb{background:rgba(251,191,36,0.2);color:var(--amber);font-size:10px;padding:2px 7px;border-radius:8px;margin-left:8px}
+
+/* AD BANNER */
+.ad-banner{background:var(--bg3);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center;color:var(--muted);font-size:12px;margin-bottom:16px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:36px;max-width:380px;width:90%;text-align:center}
+.modal h2{font-size:24px;margin-bottom:8px}
+.modal p{color:var(--muted);font-size:14px;margin-bottom:20px}
+.modal .big-emoji{font-size:48px;margin-bottom:12px}
+.modal-btns{display:flex;gap:10px;justify-content:center}
+.modal-btns button{padding:9px 22px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;border:1px solid var(--border);background:var(--bg3);color:var(--text);transition:all .2s}
+.modal-btns button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.modal-btns button:hover{opacity:.9}
+
+/* USER INFO */
+.user-chip{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.avatar{width:28px;height:28px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600}
+
+@media(max-width:640px){
+  .timer-grid{grid-template-columns:1fr}
+  .stats-cards{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<h2 class="sr-only">FocusFlow – Pomodoro Study Timer App</h2>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Focus<span>Flow</span></div>
+  <div class="nav-links" id="navLinks">
+    <button onclick="showPage('auth')" id="navAuth" class="active">Sign in</button>
+  </div>
+  <div id="userChip" class="user-chip" style="display:none"></div>
+</nav>
+
+<!-- AUTH PAGE -->
+<div class="page active" id="authPage">
+  <div class="auth-card">
+    <h2 id="authTitle">Create your account</h2>
+    <p id="authSub">Start your study journey with FocusFlow</p>
+    <div class="field"><label>Name</label><input type="text" id="authName" placeholder="Your name"></div>
+    <div class="field"><label>Email</label><input type="email" id="authEmail" placeholder="you@email.com"></div>
+    <div class="field"><label>Password</label><input type="password" id="authPass" placeholder="••••••••"></div>
+    <div class="error-msg" id="authErr">Invalid credentials. Please try again.</div>
+    <button class="btn-primary" onclick="handleAuth()">Create account</button>
+    <div class="auth-toggle">Already have an account? <a onclick="toggleAuth()">Sign in</a></div>
+  </div>
+</div>
+
+<!-- TIMER PAGE -->
+<div class="page" id="timerPage">
+  <div id="adBanner" class="ad-banner">
+  <ins class="adsbygoogle"
+    style="display:block"
+    data-ad-client="ca-pub-5586100977457598"
+    data-ad-slot="XXXXXXXXXX"
+    data-ad-format="auto"
+    data-full-width-responsive="true">
+  </ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+  <div class="timer-grid">
+    <div class="timer-main">
+      <div class="mode-toggle">
+        <button class="mode-btn active" onclick="setMode(25,5,this)">25 / 5</button>
+        <button class="mode-btn" onclick="setMode(50,10,this)">50 / 10</button>
+      </div>
+      <div class="phase-label" id="phaseLabel">Focus time</div>
+      <div class="ring-wrap">
+        <svg width="220" height="220" viewBox="0 0 220 220">
+          <circle class="ring-bg" cx="110" cy="110" r="100"/>
+          <circle class="ring-prog" id="ringProg" cx="110" cy="110" r="100" stroke-dasharray="628" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-display">
+          <div class="time" id="timerDisplay">25:00</div>
+          <div class="session" id="sessionLabel">Session 1</div>
+        </div>
+      </div>
+      <div class="timer-controls">
+        <button class="ctrl-btn" onclick="resetTimer()" title="Reset">⟳</button>
+        <button class="ctrl-btn play" id="playBtn" onclick="toggleTimer()">▶</button>
+        <button class="ctrl-btn" onclick="skipPhase()" title="Skip">⏭</button>
+      </div>
+      <div class="stats-row">
+        <div class="stat-box"><div class="val" id="todayTime">0m</div><div class="lbl">Today</div></div>
+        <div class="stat-box"><div class="val" id="sessCount">0</div><div class="lbl">Sessions</div></div>
+        <div class="stat-box"><div class="val" id="streakCount">0🔥</div><div class="lbl">Streak</div></div>
+      </div>
+      <div class="limit-bar-wrap" id="limitWrap">
+        <label><span>Daily limit</span><span id="limitLabel">0 / 240 min</span></label>
+        <div class="limit-bar"><div class="limit-fill" id="limitFill" style="width:0%"></div></div>
+        <div class="premium-badge" onclick="showPremiumModal()">⭐ Go Premium — remove limit & ads</div>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="panel">
+        <h3>Ambient sound</h3>
+        <div class="sound-grid" id="soundGrid">
+          <button class="sound-btn active" data-sound="none" onclick="setSound('none',this)">🔇 None</button>
+          <button class="sound-btn" data-sound="rain" onclick="setSound('rain',this)">🌧 Rain</button>
+          <button class="sound-btn" data-sound="piano" onclick="setSound('piano',this)">🎹 Piano</button>
+          <button class="sound-btn" data-sound="acoustic" onclick="setSound('acoustic',this)">🎸 Acoustic</button>
+          <button class="sound-btn" data-sound="cafe" onclick="setSound('cafe',this)">☕ Café</button>
+          <button class="sound-btn" data-sound="ocean" onclick="setSound('ocean',this)">🌊 Ocean</button>
+        </div>
+        <div class="vol-row">
+          <label>Vol</label>
+          <input type="range" id="volSlider" min="0" max="100" value="50" step="1" oninput="setVolume(this.value)">
+          <label id="volVal">50%</label>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Session notes</h3>
+        <textarea id="noteInput" placeholder="What are you studying?" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:var(--radius-sm);font-size:13px;resize:vertical;min-height:80px;outline:none"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY PAGE -->
+<div class="page" id="historyPage">
+  <div class="history-header">
+    <h2>Study history</h2>
+    <button onclick="clearHistory()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px">Clear all</button>
+  </div>
+  <div class="stats-cards">
+    <div class="stat-card"><div class="sc-val" id="totalTime">0m</div><div class="sc-lbl">Total focus time</div></div>
+    <div class="stat-card"><div class="sc-val" id="totalSess">0</div><div class="sc-lbl">Total sessions</div></div>
+    <div class="stat-card"><div class="sc-val" id="bestSession">0m</div><div class="sc-lbl">Best single session</div></div>
+  </div>
+  <div class="history-list" id="historyList"><div class="empty-state">No sessions yet. Start your first focus timer!</div></div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="congratsModal">
+  <div class="modal">
+    <div class="big-emoji">🎉</div>
+    <h2>New personal best!</h2>
+    <p id="congratsText">You beat your previous record!</p>
+    <div class="modal-btns">
+      <button class="primary" onclick="closeModal('congratsModal')">Keep going!</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sessionEndModal">
+  <div class="modal">
+    <div class="big-emoji" id="endEmoji">✅</div>
+    <h2 id="endTitle">Focus session done!</h2>
+    <p id="endText">Great work. Take a well-earned break.</p>
+    <div class="modal-btns">
+      <button onclick="closeModal('sessionEndModal')">Dismiss</button>
+      <button class="primary" onclick="startBreak()">Start break</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="limitModal">
+  <div class="modal">
+    <div class="big-emoji">⭐</div>
+    <h2>Daily limit reached</h2>
+    <p>Free users can focus up to 4 hours per day. Upgrade to Premium for unlimited study time, no ads, and more.</p>
+    <div class="modal-btns">
+      <button onclick="closeModal('limitModal')">Maybe later</button>
+      <button class="primary" onclick="activatePremium()">Upgrade — free demo</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="premiumModal">
+  <div class="modal">
+    <div class="big-emoji">⭐</div>
+    <h2>FocusFlow Premium</h2>
+    <p>Remove all ads · Unlimited daily focus time · Priority support</p>
+    <div class="modal-btns">
+      <button onclick="closeModal('premiumModal')">Not now</button>
+      <button class="primary" onclick="activatePremium()">Activate (demo)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+let state = {
+  user: null,
+  users: {},
+  isPremium: false,
+  focusMin: 25, breakMin: 5,
+  seconds: 25*60, totalSec: 25*60,
+  running: false, isBreak: false,
+  sessionNum: 1, sessionsToday: 0,
+  todayFocusSec: 0,
+  history: [],
+  bestFocusSec: 0,
+  streak: 0, lastDate: null,
+  sound: 'none', volume: 0.5,
+  audioCtx: null, soundNode: null,
+  timerInt: null
+};
+
+// ── AUDIO ENGINE ───────────────────────────────────────────────
+function getAudioCtx(){
+  if(!state.audioCtx) state.audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  return state.audioCtx;
+}
+
+function playTone(freq, dur, type='sine'){
+  try{
+    const ctx=getAudioCtx();
+    const osc=ctx.createOscillator();
+    const g=ctx.createGain();
+    osc.connect(g); g.connect(ctx.destination);
+    osc.type=type; osc.frequency.value=freq;
+    g.gain.setValueAtTime(0.3,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+    osc.start(); osc.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+
+function playStartSound(){playTone(523,0.15);setTimeout(()=>playTone(659,0.15),150);setTimeout(()=>playTone(784,0.3),300)}
+function playEndSound(){playTone(784,0.2);setTimeout(()=>playTone(659,0.2),200);setTimeout(()=>playTone(523,0.4),400)}
+function vibrate(p){if(navigator.vibrate)navigator.vibrate(p)}
+
+const SOUNDS = {
+  rain: (ctx,vol) => {
+    const buf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.3;
+    const src=ctx.createBufferSource(); src.buffer=buf; src.loop=true;
+    const g=ctx.createGain(); g.gain.value=vol*0.4;
+    const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=800;
+    src.connect(f); f.connect(g); g.connect(ctx.destination);
+    src.start(); return {stop:()=>src.stop()};
+  },
+  piano: (ctx,vol) => {
+    let active=true;
+    const notes=[261,329,392,523,659];
+    const g=ctx.createGain(); g.gain.value=vol*0.15; g.connect(ctx.destination);
+    function play(){
+      if(!active) return;
+      const n=notes[Math.floor(Math.random()*notes.length)];
+      const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=n;
+      const og=ctx.createGain(); og.gain.setValueAtTime(0.3,ctx.currentTime);
+      og.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+1.5);
+      o.connect(og); og.connect(g); o.start(); o.stop(ctx.currentTime+1.5);
+      setTimeout(play,Math.random()*3000+1500);
+    }
+    play(); return {stop:()=>{active=false}};
+  },
+  acoustic: (ctx,vol) => {
+    let active=true;
+    const chords=[[196,247,294],[220,277,329],[261,329,392]];
+    const g=ctx.createGain(); g.gain.value=vol*0.12; g.connect(ctx.destination);
+    function play(){
+      if(!active) return;
+      const ch=chords[Math.floor(Math.random()*chords.length)];
+      ch.forEach((f,i)=>{
+        const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=f;
+        const og=ctx.createGain(); og.gain.setValueAtTime(0.1,ctx.currentTime+i*0.05);
+        og.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+2);
+        o.connect(og); og.connect(g); o.start(ctx.currentTime+i*0.05); o.stop(ctx.currentTime+2);
+      });
+      setTimeout(play,Math.random()*4000+2000);
+    }
+    play(); return {stop:()=>{active=false}};
+  },
+  cafe: (ctx,vol) => {
+    const buf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.15;
+    const src=ctx.createBufferSource(); src.buffer=buf; src.loop=true;
+    const g=ctx.createGain(); g.gain.value=vol*0.25;
+    const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=400;
+    src.connect(f); f.connect(g); g.connect(ctx.destination);
+    src.start(); return {stop:()=>src.stop()};
+  },
+  ocean: (ctx,vol) => {
+    const buf=ctx.createBuffer(1,ctx.sampleRate*3,ctx.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++){
+      const wave=Math.sin(i/ctx.sampleRate*0.3)*0.5+0.5;
+      d[i]=(Math.random()*2-1)*0.4*wave;
+    }
+    const src=ctx.createBufferSource(); src.buffer=buf; src.loop=true;
+    const g=ctx.createGain(); g.gain.value=vol*0.35;
+    const f=ctx.createBiquadFilter(); f.type='lowshelf'; f.frequency.value=200;
+    src.connect(f); f.connect(g); g.connect(ctx.destination);
+    src.start(); return {stop:()=>src.stop()};
+  }
+};
+
+function startAmbient(){
+  stopAmbient();
+  if(state.sound==='none') return;
+  try{
+    const ctx=getAudioCtx();
+    state.soundNode=SOUNDS[state.sound](ctx,state.volume);
+  }catch(e){}
+}
+
+function stopAmbient(){
+  if(state.soundNode){try{state.soundNode.stop()}catch(e){}state.soundNode=null;}
+}
+
+// ── AUTH ──────────────────────────────────────────────────────
+let isSignUp=true;
+function toggleAuth(){
+  isSignUp=!isSignUp;
+  document.getElementById('authTitle').textContent=isSignUp?'Create your account':'Welcome back';
+  document.getElementById('authSub').textContent=isSignUp?'Start your study journey with FocusFlow':'Sign in to continue';
+  document.querySelector('.auth-toggle').innerHTML=isSignUp?'Already have an account? <a onclick="toggleAuth()">Sign in</a>':'No account? <a onclick="toggleAuth()">Sign up</a>';
+  document.getElementById('authName').style.display=isSignUp?'block':'none';
+  document.getElementById('authErr').style.display='none';
+  document.querySelector('.btn-primary').textContent=isSignUp?'Create account':'Sign in';
+}
+document.getElementById('authName').style.display='block';
+
+function handleAuth(){
+  const email=document.getElementById('authEmail').value.trim();
+  const pass=document.getElementById('authPass').value;
+  const name=document.getElementById('authName').value.trim();
+  const err=document.getElementById('authErr');
+  if(!email||!pass){err.textContent='Please fill in all fields.';err.style.display='block';return;}
+  if(isSignUp){
+    if(state.users[email]){err.textContent='Account already exists. Sign in instead.';err.style.display='block';return;}
+    state.users[email]={pass,name:name||email.split('@')[0],isPremium:false,history:[],todayFocusSec:0,bestFocusSec:0,streak:0,lastDate:null,sessionsToday:0};
+    loginUser(email);
+  } else {
+    const u=state.users[email];
+    if(!u||u.pass!==pass){err.textContent='Invalid email or password.';err.style.display='block';return;}
+    loginUser(email);
+  }
+}
+
+function loginUser(email){
+  state.user=email;
+  const u=state.users[email];
+  state.isPremium=u.isPremium;
+  state.history=u.history||[];
+  state.todayFocusSec=u.todayFocusSec||0;
+  state.bestFocusSec=u.bestFocusSec||0;
+  state.streak=u.streak||0;
+  state.lastDate=u.lastDate||null;
+  state.sessionsToday=u.sessionsToday||0;
+  checkStreak();
+  updateNav();
+  showPage('timer');
+  updateTimerUI();
+  updateHistoryUI();
+  updateStatsUI();
+  updateLimitUI();
+}
+
+function updateNav(){
+  const u=state.users[state.user];
+  document.getElementById('navAuth').style.display='none';
+  document.getElementById('userChip').style.display='flex';
+  const initials=u.name.slice(0,2).toUpperCase();
+  document.getElementById('userChip').innerHTML=`<div class="avatar">${initials}</div><span>${u.name}${state.isPremium?' ⭐':''}</span><button onclick="logout()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;margin-left:8px">Sign out</button>`;
+}
+
+function logout(){
+  saveUserData();
+  state.user=null; running=false; clearInterval(state.timerInt);
+  document.getElementById('navAuth').style.display='inline-block';
+  document.getElementById('navAuth').className='active';
+  document.getElementById('userChip').style.display='none';
+  showPage('auth');
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById(p+'Page').classList.add('active');
+  document.querySelectorAll('.nav-links button').forEach(b=>b.classList.remove('active'));
+  if(p==='timer') document.getElementById('navTimer')?.classList.add('active');
+  if(p==='history'){document.getElementById('navHistory')?.classList.add('active');updateHistoryUI();}
+}
+
+// After login, show timer/history nav
+function updateNav(){
+  const u=state.users[state.user];
+  document.getElementById('navAuth').style.display='none';
+  document.getElementById('navLinks').innerHTML=`
+    <button onclick="showPage('timer')" id="navTimer">Timer</button>
+    <button onclick="showPage('history')" id="navHistory">History</button>`;
+  document.getElementById('userChip').style.display='flex';
+  const initials=u.name.slice(0,2).toUpperCase();
+  document.getElementById('userChip').innerHTML=`<div class="avatar">${initials}</div><span style="font-size:13px;color:var(--muted)">${u.name}${state.isPremium?' ⭐':''}</span><button onclick="logout()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;margin-left:8px">Sign out</button>`;
+  showPage('timer');
+  document.getElementById('navTimer').classList.add('active');
+}
+
+// ── TIMER LOGIC ───────────────────────────────────────────────
+function setMode(f,b,btn){
+  if(state.running) return;
+  state.focusMin=f; state.breakMin=b;
+  state.seconds=f*60; state.totalSec=f*60;
+  state.isBreak=false; state.sessionNum=1;
+  document.querySelectorAll('.mode-btn').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  updateTimerUI();
+}
+
+function toggleTimer(){
+  if(!state.user) return;
+  if(!state.isPremium && state.todayFocusSec>=240*60 && !state.isBreak){
+    showModal('limitModal'); return;
+  }
+  state.running=!state.running;
+  document.getElementById('playBtn').textContent=state.running?'⏸':'▶';
+  if(state.running){
+    if(!state.isBreak){playStartSound();vibrate([200]);}
+    if(!state.isBreak) startAmbient();
+    state.timerInt=setInterval(tick,1000);
+  } else {
+    clearInterval(state.timerInt);
+    if(!state.isBreak) stopAmbient();
+  }
+}
+
+function tick(){
+  if(!state.isPremium && !state.isBreak && state.todayFocusSec>=240*60){
+    clearInterval(state.timerInt); state.running=false;
+    document.getElementById('playBtn').textContent='▶';
+    stopAmbient(); showModal('limitModal'); return;
+  }
+  state.seconds--;
+  if(!state.isBreak){state.todayFocusSec++;saveUserData();}
+  updateTimerUI();
+  updateLimitUI();
+  updateStatsUI();
+  if(state.seconds<=0) phaseComplete();
+}
+
+function phaseComplete(){
+  clearInterval(state.timerInt); state.running=false;
+  document.getElementById('playBtn').textContent='▶';
+  playEndSound(); vibrate([300,100,300]);
+  if(!state.isBreak){
+    stopAmbient();
+    state.sessionsToday++;
+    const dur=state.focusMin;
+    const note=document.getElementById('noteInput').value||'Focus session';
+    addHistory({type:'focus',dur,label:note,mode:`${state.focusMin}/${state.breakMin}`});
+    checkPersonalBest(dur*60);
+    showModal('sessionEndModal');
+    document.getElementById('endTitle').textContent=`${dur}-min focus done!`;
+    document.getElementById('endText').textContent=`Great work, ${state.users[state.user].name.split(' ')[0]}! Take a ${state.breakMin}-min break.`;
+    document.getElementById('endEmoji').textContent='✅';
+  } else {
+    state.isBreak=false;
+    state.sessionNum++;
+    state.seconds=state.focusMin*60; state.totalSec=state.focusMin*60;
+    updateTimerUI();
+  }
+}
+
+function startBreak(){
+  closeModal('sessionEndModal');
+  state.isBreak=true;
+  state.seconds=state.breakMin*60; state.totalSec=state.breakMin*60;
+  updateTimerUI();
+  state.running=true;
+  document.getElementById('playBtn').textContent='⏸';
+  playStartSound();
+  state.timerInt=setInterval(tick,1000);
+}
+
+function skipPhase(){
+  clearInterval(state.timerInt); state.running=false;
+  document.getElementById('playBtn').textContent='▶';
+  stopAmbient();
+  state.isBreak=!state.isBreak;
+  state.seconds=(state.isBreak?state.breakMin:state.focusMin)*60;
+  state.totalSec=state.seconds;
+  updateTimerUI();
+}
+
+function resetTimer(){
+  clearInterval(state.timerInt); state.running=false;
+  document.getElementById('playBtn').textContent='▶';
+  stopAmbient();
+  state.isBreak=false;
+  state.seconds=state.focusMin*60; state.totalSec=state.focusMin*60;
+  state.sessionNum=1;
+  updateTimerUI();
+}
+
+function updateTimerUI(){
+  const m=Math.floor(state.seconds/60); const s=state.seconds%60;
+  document.getElementById('timerDisplay').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  document.getElementById('phaseLabel').textContent=state.isBreak?'Break time':'Focus time';
+  document.getElementById('sessionLabel').textContent=`Session ${state.sessionNum}`;
+  const circ=628; const off=circ*(1-state.seconds/state.totalSec);
+  const ring=document.getElementById('ringProg');
+  ring.style.strokeDashoffset=off;
+  ring.style.stroke=state.isBreak?'var(--green)':'var(--accent)';
+}
+
+function updateStatsUI(){
+  const tm=Math.round(state.todayFocusSec/60);
+  document.getElementById('todayTime').textContent=tm>=60?`${Math.floor(tm/60)}h ${tm%60}m`:`${tm}m`;
+  document.getElementById('sessCount').textContent=state.sessionsToday;
+  document.getElementById('streakCount').textContent=`${state.streak}🔥`;
+}
+
+function updateLimitUI(){
+  if(!state.user) return;
+  const pct=Math.min(100,(state.todayFocusSec/(240*60))*100);
+  const fill=document.getElementById('limitFill');
+  fill.style.width=pct+'%';
+  fill.className='limit-fill'+(pct>=100?' over':pct>=75?' warn':'');
+  document.getElementById('limitLabel').textContent=`${Math.round(state.todayFocusSec/60)} / 240 min`;
+  document.getElementById('limitWrap').style.display=state.isPremium?'none':'block';
+  document.getElementById('adBanner').style.display=state.isPremium?'none':'block';
+}
+
+// ── SOUND ─────────────────────────────────────────────────────
+function setSound(s,btn){
+  state.sound=s;
+  document.querySelectorAll('.sound-btn').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  if(state.running&&!state.isBreak){startAmbient();}
+}
+function setVolume(v){
+  state.volume=v/100;
+  document.getElementById('volVal').textContent=v+'%';
+  if(state.running&&!state.isBreak) startAmbient();
+}
+
+// ── HISTORY ───────────────────────────────────────────────────
+function addHistory(entry){
+  entry.time=new Date().toLocaleString();
+  state.history.unshift(entry);
+  saveUserData();
+  updateHistoryUI();
+}
+
+function updateHistoryUI(){
+  const list=document.getElementById('historyList');
+  if(!state.history||!state.history.length){list.innerHTML='<div class="empty-state">No sessions yet. Start your first focus timer!</div>';return;}
+  let totalMin=0, best=0;
+  state.history.forEach(h=>{totalMin+=h.dur;if(h.dur>best)best=h.dur;});
+  document.getElementById('totalTime').textContent=totalMin>=60?`${Math.floor(totalMin/60)}h ${totalMin%60}m`:`${totalMin}m`;
+  document.getElementById('totalSess').textContent=state.history.filter(h=>h.type==='focus').length;
+  document.getElementById('bestSession').textContent=`${best}m`;
+  list.innerHTML=state.history.slice(0,30).map((h,i)=>{
+    const pb=i===0&&state.history.length>1&&h.dur*60===state.bestFocusSec;
+    return`<div class="history-item">
+      <div class="hi-icon ${h.type==='focus'?'hi-focus':'hi-break'}">${h.type==='focus'?'🎯':'☕'}</div>
+      <div class="hi-info">
+        <div class="hi-title">${h.label||'Focus session'}${pb?'<span class="badge-pb">PB</span>':''}</div>
+        <div class="hi-sub">${h.time} · ${h.mode} mode</div>
+      </div>
+      <div class="hi-dur">${h.dur}m</div>
+    </div>`;
+  }).join('');
+}
+
+function clearHistory(){
+  state.history=[];state.bestFocusSec=0;state.sessionsToday=0;state.todayFocusSec=0;
+  saveUserData();updateHistoryUI();updateStatsUI();updateLimitUI();
+}
+
+function checkPersonalBest(secs){
+  if(secs>state.bestFocusSec){
+    const prev=state.bestFocusSec;
+    state.bestFocusSec=secs;
+    saveUserData();
+    if(prev>0){
+      document.getElementById('congratsText').textContent=`You focused for ${Math.round(secs/60)} minutes, beating your previous best of ${Math.round(prev/60)} minutes!`;
+      setTimeout(()=>showModal('congratsModal'),800);
+    }
+  }
+}
+
+function checkStreak(){
+  const today=new Date().toDateString();
+  if(state.lastDate===today) return;
+  const yesterday=new Date(Date.now()-86400000).toDateString();
+  if(state.lastDate===yesterday) state.streak++;
+  else state.streak=1;
+  state.lastDate=today;
+  saveUserData();
+}
+
+function saveUserData(){
+  if(!state.user) return;
+  const u=state.users[state.user];
+  u.history=state.history; u.todayFocusSec=state.todayFocusSec;
+  u.bestFocusSec=state.bestFocusSec; u.streak=state.streak;
+  u.lastDate=state.lastDate; u.sessionsToday=state.sessionsToday;
+  u.isPremium=state.isPremium;
+}
+
+// ── MODALS ────────────────────────────────────────────────────
+function showModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function showPremiumModal(){showModal('premiumModal')}
+function activatePremium(){
+  state.isPremium=true;
+  if(state.user) state.users[state.user].isPremium=true;
+  closeModal('premiumModal'); closeModal('limitModal');
+  updateLimitUI(); updateNav();
+  alert('Premium activated! No ads and unlimited focus time.');
+}
+</script>
+</body>
+</html>
